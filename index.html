@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investment Analytics Directory</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen font-sans flex items-center justify-center">
+
+    <div class="max-w-3xl w-full px-6 py-12">
+        <header class="text-center mb-12">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-500/10 text-emerald-400 mb-4 border border-emerald-500/20">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941" />
+                </svg>
+            </div>
+            <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">Investment Hub</h1>
+            <p class="text-gray-400 mt-2 text-base">Select an analytics webapp below to run local historical simulations.</p>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            <a href="combined_portfolio.html" class="group relative bg-gray-800 hover:bg-gray-750 p-6 rounded-2xl border border-gray-700 hover:border-emerald-500/50 transition-all duration-300 shadow-xl flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-xs font-semibold tracking-wider uppercase text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full">Webapp 1</span>
+                        <span class="text-gray-500 group-hover:text-emerald-400 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                            </svg>
+                        </span>
+                    </div>
+                    <h2 class="text-xl font-bold text-gray-100 group-hover:text-white mb-2">Combined Portfolio</h2>
+                    <p class="text-sm text-gray-400 leading-relaxed">Analyze multi-asset allocations and comprehensive backtesting statistics across your custom portfolios.</p>
+                </div>
+                <div class="mt-6 text-xs text-gray-500 font-mono">/combined_portfolio.html</div>
+            </a>
+
+            <a href="sp500_historical_invest.html" class="group relative bg-gray-800 hover:bg-gray-750 p-6 rounded-2xl border border-gray-700 hover:border-emerald-500/50 transition-all duration-300 shadow-xl flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-xs font-semibold tracking-wider uppercase text-blue-400 bg-blue-500/10 px-2.5 py-1 rounded-full">Webapp 2</span>
+                        <span class="text-gray-500 group-hover:text-emerald-400 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                            </svg>
+                        </span>
+                    </div>
+                    <h2 class="text-xl font-bold text-gray-100 group-hover:text-white mb-2">S&P 500 Historical DCA</h2>
+                    <p class="text-sm text-gray-400 leading-relaxed">Calculate returns from historical dollar-cost averaging on primary index tracking funds over customized horizons.</p>
+                </div>
+                <div class="mt-6 text-xs text-gray-500 font-mono">/sp500_historical_invest.html</div>
+            </a>
+
+        </div>
+
+        <footer class="text-center mt-12 text-xs text-gray-600">
+            <p>Repository: <span class="font-mono text-gray-500">Jandhu/InvestmentPages</span></p>
+        </footer>
+    </div>
+
+</body>
+</html>
