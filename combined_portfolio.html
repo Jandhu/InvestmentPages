@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-File Fidelity Portfolio Exposure Analyzer</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen font-sans p-6">
+
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <header class="mb-8 border-b border-gray-800 pb-4 flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-extrabold text-blue-400">Aggregated Portfolio Exposure</h1>
+                <p class="text-sm text-gray-400 mt-1">Select or drop multiple Fidelity CSVs. Everything processes locally in your browser.</p>
+            </div>
+            <div class="bg-green-900/30 border border-green-700 text-green-400 px-3 py-1 rounded text-xs font-semibold">
+                🔒 100% Private & Local
+            </div>
+        </header>
+
+        <!-- Multi-File Drop Zone -->
+        <div class="mb-8">
+            <label class="flex flex-col items-center justify-center w-full h-36 border-2 border-gray-700 border-dashed rounded-lg cursor-pointer bg-gray-800 hover:bg-gray-750 transition">
+                <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                    <svg class="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 13h6m-3-3v6m-9 1V4a2 2 0 012-2h6l2 2h6a2 2 0 012 2v7m-18 0v6a2 2 0 002 2h12a2 2 0 002-2v-6m-16 0h16"></path>
+                    </svg>
+                    <p class="mb-1 text-sm text-gray-400"><span class="font-semibold">Click to select files</span> or drag & drop multiple CSVs</p>
+                    <p class="text-xs text-gray-500">Supports both traditional holding statements and active position exports</p>
+                </div>
+                <input id="csvFileInput" type="file" accept=".csv" multiple class="hidden" />
+            </label>
+            <!-- Loaded Files Indicator -->
+            <div id="fileList" class="mt-2 flex flex-wrap gap-2 text-xs text-gray-400"></div>
+        </div>
+
+        <!-- Dashboard View -->
+        <div id="dashboard" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Left Panel: Chart & Summary -->
+            <div class="lg:col-span-1 bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-xl flex flex-col justify-between">
+                <div>
+                    <h2 class="text-xl font-bold mb-4 text-gray-200">Combined Allocation</h2>
+                    <div class="relative max-w-[280px] mx-auto my-4">
+                        <canvas id="allocationChart"></canvas>
+                    </div>
+                </div>
+                <div class="mt-6 pt-4 border-t border-gray-700">
+                    <div class="flex justify-between text-gray-400 text-sm mb-1">
+                        <span>Total Combined Value:</span>
+                    </div>
+                    <div id="totalValue" class="text-3xl font-black text-white">$0.00</div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Combined Exposure Breakdowns -->
+            <div class="lg:col-span-2 bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-xl">
+                <h2 class="text-xl font-bold mb-4 text-gray-200">Consolidated Holdings Exposure</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-gray-300">
+                        <thead class="text-xs uppercase bg-gray-750 text-gray-400 border-b border-gray-700">
+                            <tr>
+                                <th class="px-4 py-3">Asset Bucket</th>
+                                <th class="px-4 py-3">Mapped Tickers</th>
+                                <th class="px-4 py-3 text-right">Combined Value</th>
+                                <th class="px-4 py-3 text-right">Total Allocation</th>
+                            </tr>
+                        </thead>
+                        <tbody id="exposureTableBody" class="divide-y divide-gray-700">
+                            <!-- JS rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Mapping configurations for merged asset classes
+        const CATEGORY_MAPS = {
+            'SP500': ['VOO', 'SPY', 'FXAIX', 'FNILX', 'IVV'],
+            'TotalUSStock': ['VTI', 'FSKAX', 'VTSAX', 'FZROX'],
+            'Nasdaq100': ['QQQ', 'QQQM'],
+            'TechSector': ['VGT', 'XLK', 'FTEC'],
+            'Semiconductors': ['SMH', 'SOXX'],
+            'GrowthStock': ['VUG', 'SCHG'],
+            'TotalInternational': ['VT', 'VXUS', 'FZILX', 'IXUS'],
+            'CashEquivalents': ['SPAXX', 'FDRXX', 'SPRXX']
+        };
+
+        let currentChart = null;
+        let globalHoldings = {};
+        let globalTotalPortfolioValue = 0;
+
+        document.getElementById('csvFileInput').addEventListener('change', handleFileSelect);
+
+        function handleFileSelect(event) {
+            const files = event.target.files;
+            if (!files.length) return;
+
+            // Reset global states for a fresh aggregate calculation
+            globalHoldings = {};
+            globalTotalPortfolioValue = 0;
+
+            const fileListDiv = document.getElementById('fileList');
+            fileListDiv.innerHTML = '<strong>Loaded Files:</strong> ' + Array.from(files).map(f => f.name).join(', ');
+
+            let filesProcessed = 0;
+
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    parseCSVData(e.target.result);
+                    filesProcessed++;
+                    
+                    // Once all files are parsed synchronously in memory, render the combined dashboard
+                    if (filesProcessed === files.length) {
+                        if (globalTotalPortfolioValue > 0) {
+                            renderDashboard(globalHoldings, globalTotalPortfolioValue);
+                        } else {
+                            alert("Could not process financial data. Please make sure the selected files match Fidelity formats.");
+                        }
+                    }
+                };
+                reader.readAsText(file);
+            });
+        }
+
+        function parseCSVData(csvText) {
+            const lines = csvText.split('\n');
+
+            lines.forEach(line => {
+                // Split by comma and strip quotes/spaces
+                const cols = line.split(',').map(c => c.trim().replace(/^["']|["']$/g, ''));
+                if (cols.length < 3) return;
+
+                let ticker = '';
+                let valueStr = '';
+
+                // --- FORMAT DETECTOR ---
+                
+                // Format B Check: Contains new "Account Number,Account Name,Symbol" layout
+                if (cols.includes('Account Number') || cols.includes('Symbol') || cols.length >= 15) {
+                    // Header/Subtotal Skip
+                    if (cols[2] === 'Symbol' || cols[2] === '' || cols[0].startsWith('Subtotal') || cols[2]?.startsWith('Subtotal')) return;
+                    
+                    ticker = cols[2];
+                    valueStr = cols[7]; // "Current Value" is the 8th column index
+                } 
+                // Format A Check: Standard Statement layout from previous prompt
+                else {
+                    if (cols[0] === 'TICKER' || cols[0] === '' || cols[0].startsWith('Subtotal')) return;
+                    
+                    ticker = cols[0];
+                    valueStr = cols[5]; // "Ending Value" is the 6th column index
+                }
+
+                // Clean the currency string (removes $, commas, etc.)
+                if (valueStr) {
+                    const endingValue = parseFloat(valueStr.replace(/[^0-9.-]+/g, ""));
+
+                    if (ticker && !isNaN(endingValue) && endingValue !== 0) {
+                        // Map ticker to its consolidated bucket
+                        let bucket = ticker;
+                        for (const [category, tickers] of Object.entries(CATEGORY_MAPS)) {
+                            if (tickers.includes(ticker)) {
+                                bucket = category;
+                                break;
+                            }
+                        }
+
+                        // Initialize asset bucket if empty
+                        if (!globalHoldings[bucket]) {
+                            globalHoldings[bucket] = { value: 0, tickers: new Set() };
+                        }
+                        
+                        globalHoldings[bucket].value += endingValue;
+                        globalHoldings[bucket].tickers.add(ticker);
+                        globalTotalPortfolioValue += endingValue;
+                    }
+                }
+            });
+        }
+
+        function renderDashboard(holdings, totalValue) {
+            document.getElementById('dashboard').classList.remove('hidden');
+            
+            document.getElementById('totalValue').innerText = new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(totalValue);
+
+            const sortedHoldings = Object.entries(holdings).sort((a, b) => b[1].value - a[1].value);
+            const tableBody = document.getElementById('exposureTableBody');
+            tableBody.innerHTML = '';
+
+            const chartLabels = [];
+            const chartData = [];
+
+            sortedHoldings.forEach(([bucket, data]) => {
+                const allocationPercentage = (data.value / totalValue) * 100;
+                const mappedTickersStr = Array.from(data.tickers).join(', ');
+
+                chartLabels.push(bucket);
+                chartData.push(data.value.toFixed(2));
+
+                const row = document.createElement('tr');
+                row.className = "hover:bg-gray-750 transition";
+                row.innerHTML = `
+                    <td class="px-4 py-3.5 font-semibold text-white">${bucket}</td>
+                    <td class="px-4 py-3.5 text-xs text-gray-400 max-w-[200px] truncate" title="${mappedTickersStr}">${mappedTickersStr}</td>
+                    <td class="px-4 py-3.5 text-right font-mono">${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(data.value)}</td>
+                    <td class="px-4 py-3.5 text-right font-semibold text-blue-400">${allocationPercentage.toFixed(2)}%</td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+            if (currentChart) {
+                currentChart.destroy();
+            }
+
+            const ctx = document.getElementById('allocationChart').getContext('2d');
+            currentChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        data: chartData,
+                        backgroundColor: [
+                            '#3b82f6', '#10b981', '#f59e0b', '#ef4444', 
+                            '#8b5cf6', '#ec4899', '#14b8a6', '#6366f1', '#06b6d4'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#1f2937'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
