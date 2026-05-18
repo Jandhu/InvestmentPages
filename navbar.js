@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
         { name: "Home Dashboard", url: "index.html" },
         { name: "Combined Portfolio", url: "combined_portfolio.html" },
         { name: "S&P 500 Historical DCA", url: "sp500_historical_invest.html" }
+        { name: "Rental Return Calculator", url: "rental_return_calculator.html" }
     ];
 
     // 2. Identify which page the user is currently looking at
