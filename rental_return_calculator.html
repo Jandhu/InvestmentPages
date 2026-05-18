@@ -1,132 +1,384 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rental ROI & Equity Calculator</title>
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f4f7f6; padding: 20px; color: #333; }
-        .container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .input-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9em; }
-        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-        button { grid-column: span 2; padding: 15px; background: #2ecc71; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 1.1em; font-weight: bold; }
-        button:hover { background: #27ae60; }
-        .results { margin-top: 30px; padding: 20px; border-top: 2px solid #eee; display: none; }
-        .metric-card { background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 5px solid #2ecc71; margin-bottom: 10px; }
-        .metric-value { font-size: 1.4em; font-weight: bold; color: #2c3e50; }
-        h2 { color: #2c3e50; border-bottom: 2px solid #2ecc71; padding-bottom: 10px; }
-    </style>
-    <script src="navbar.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rental Property Investment Calculator</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f7fb;
+      margin: 0;
+      padding: 20px;
+      color: #222;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+      margin-top: 0;
+      color: #1d4ed8;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+    }
+
+    label {
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    input {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    button {
+      margin-top: 24px;
+      padding: 14px 20px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      width: 100%;
+    }
+
+    button:hover {
+      background: #1e40af;
+    }
+
+    .results {
+      margin-top: 32px;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .card {
+      background: #eef4ff;
+      padding: 18px;
+      border-radius: 10px;
+    }
+
+    .card h3 {
+      margin: 0 0 10px;
+      color: #1d4ed8;
+      font-size: 16px;
+    }
+
+    .card p {
+      margin: 0;
+      font-size: 22px;
+      font-weight: bold;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+      overflow-x: auto;
+    }
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+      text-align: right;
+    }
+
+    th {
+      background: #2563eb;
+      color: white;
+    }
+
+    td:first-child,
+    th:first-child {
+      text-align: center;
+    }
+
+    .note {
+      margin-top: 20px;
+      padding: 14px;
+      background: #fff8db;
+      border-radius: 8px;
+      border: 1px solid #facc15;
+    }
+  </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Rental Property Calculator</h2>
-    <div class="grid">
-        <div class="input-group">
-            <label>Property Value ($)</label>
-            <input type="number" id="propValue" value="300000">
-        </div>
-        <div class="input-group">
-            <label>Down Payment (%)</label>
-            <input type="number" id="downPayPct" value="20">
-        </div>
-        <div class="input-group">
-            <label>Monthly Rent ($)</label>
-            <input type="number" id="monthlyRent" value="2500">
-        </div>
-        <div class="input-group">
-            <label>Mortgage Interest Rate (%)</label>
-            <input type="number" id="mortgageRate" value="6.5" step="0.1">
-        </div>
-        <div class="input-group">
-            <label>Annual Property Tax Rate (%)</label>
-            <input type="number" id="taxRate" value="1.2" step="0.1">
-        </div>
-        <div class="input-group">
-            <label>Annual Insurance ($)</label>
-            <input type="number" id="insurance" value="1200">
-        </div>
-        <div class="input-group">
-            <label>Monthly HOA Fee ($)</label>
-            <input type="number" id="hoa" value="0">
-        </div>
-        <div class="input-group">
-            <label>Management Fee (%)</label>
-            <input type="number" id="mgmtFee" value="10">
-        </div>
-        <button onclick="calculate()">Calculate Annual Returns</button>
+  <h1>Rental Property Investment Calculator</h1>
+
+  <div class="grid">
+
+    <div class="field">
+      <label>Monthly Rent ($)</label>
+      <input type="number" id="rent" value="2500">
     </div>
 
-    <div id="results" class="results">
-        <div class="grid">
-            <div class="metric-card">
-                <label>Annual Net Cash Flow</label>
-                <div class="metric-value" id="resCashFlow"></div>
-                <small>Cash-on-Cash Return: <span id="resCashReturn"></span></small>
-            </div>
-            <div class="metric-card" style="border-left-color: #3498db;">
-                <label>Year 1 Equity Build-up (Principal)</label>
-                <div class="metric-value" id="resEquity"></div>
-                <small>Equity Return: <span id="resEquityReturn"></span></small>
-            </div>
-        </div>
-        <div class="metric-card" style="border-left-color: #f1c40f; margin-top: 10px;">
-            <label>Total Annual Return (Combined)</label>
-            <div class="metric-value" id="resTotalReturn"></div>
-        </div>
+    <div class="field">
+      <label>Property Value ($)</label>
+      <input type="number" id="propertyValue" value="400000">
     </div>
+
+    <div class="field">
+      <label>Down Payment ($)</label>
+      <input type="number" id="downPayment" value="80000">
+    </div>
+
+    <div class="field">
+      <label>Mortgage Rate (%)</label>
+      <input type="number" id="mortgageRate" value="6.5" step="0.01">
+    </div>
+
+    <div class="field">
+      <label>Mortgage Term (Years)</label>
+      <input type="number" id="mortgageTerm" value="30">
+    </div>
+
+    <div class="field">
+      <label>Annual Insurance Rate (%)</label>
+      <input type="number" id="insuranceRate" value="0.5" step="0.01">
+    </div>
+
+    <div class="field">
+      <label>Annual Property Tax Rate (%)</label>
+      <input type="number" id="taxRate" value="1.2" step="0.01">
+    </div>
+
+    <div class="field">
+      <label>Monthly HOA Fee ($)</label>
+      <input type="number" id="hoaFee" value="150">
+    </div>
+
+    <div class="field">
+      <label>Property Management Fee (%)</label>
+      <input type="number" id="managementFee" value="8" step="0.01">
+    </div>
+
+    <div class="field">
+      <label>Projection Years</label>
+      <input type="number" id="projectionYears" value="10">
+    </div>
+
+  </div>
+
+  <button onclick="calculateInvestment()">Calculate Investment Returns</button>
+
+  <div class="results" id="results"></div>
+
 </div>
 
 <script>
-function calculate() {
-    // Inputs
-    const propValue = parseFloat(document.getElementById('propValue').value);
-    const downPayPct = parseFloat(document.getElementById('downPayPct').value) / 100;
-    const monthlyRent = parseFloat(document.getElementById('monthlyRent').value);
-    const interestRate = parseFloat(document.getElementById('mortgageRate').value) / 100 / 12;
-    const taxRate = parseFloat(document.getElementById('taxRate').value) / 100;
-    const annualInsurance = parseFloat(document.getElementById('insurance').value);
-    const hoa = parseFloat(document.getElementById('hoa').value);
-    const mgmtPct = parseFloat(document.getElementById('mgmtFee').value) / 100;
 
-    // Financial Foundations
-    const downPayment = propValue * downPayPct;
-    const loanAmount = propValue - downPayment;
-    const loanTermMonths = 30 * 12;
-
-    // Monthly Mortgage (P+I)
-    const monthlyPI = (loanAmount * interestRate) / (1 - Math.pow(1 + interestRate, -loanTermMonths));
-    
-    // Monthly Expenses
-    const monthlyTaxes = (propValue * taxRate) / 12;
-    const monthlyIns = annualInsurance / 12;
-    const monthlyMgmt = monthlyRent * mgmtPct;
-    
-    const totalMonthlyOutflow = monthlyPI + monthlyTaxes + monthlyIns + hoa + monthlyMgmt;
-    const monthlyCashFlow = monthlyRent - totalMonthlyOutflow;
-    
-    // Equity Build-up (Year 1 Principal calculation)
-    // Formula for Year 1 Interest: approx loanAmount * annualRate
-    const firstYearInterest = loanAmount * (interestRate * 12);
-    const firstYearTotalPayments = monthlyPI * 12;
-    const firstYearPrincipal = firstYearTotalPayments - firstYearInterest;
-
-    // Annual Totals
-    const annualCashFlow = monthlyCashFlow * 12;
-    const cashOnCashReturn = (annualCashFlow / downPayment) * 100;
-    const equityReturn = (firstYearPrincipal / downPayment) * 100;
-
-    // Display
-    document.getElementById('results').style.display = 'block';
-    document.getElementById('resCashFlow').innerText = `$${annualCashFlow.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
-    document.getElementById('resCashReturn').innerText = `${cashOnCashReturn.toFixed(2)}%`;
-    document.getElementById('resEquity').innerText = `$${firstYearPrincipal.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
-    document.getElementById('resEquityReturn').innerText = `${equityReturn.toFixed(2)}%`;
-    document.getElementById('resTotalReturn').innerText = `${(cashOnCashReturn + equityReturn).toFixed(2)}%`;
+function currency(value) {
+  return value.toLocaleString('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0
+  });
 }
+
+function percent(value) {
+  return value.toFixed(2) + "%";
+}
+
+function calculateMortgagePayment(principal, annualRate, years) {
+
+  const monthlyRate = annualRate / 100 / 12;
+  const totalPayments = years * 12;
+
+  return (
+    principal *
+    (monthlyRate * Math.pow(1 + monthlyRate, totalPayments)) /
+    (Math.pow(1 + monthlyRate, totalPayments) - 1)
+  );
+}
+
+function calculateInvestment() {
+
+  const rent = parseFloat(document.getElementById("rent").value);
+  const propertyValue = parseFloat(document.getElementById("propertyValue").value);
+  const downPayment = parseFloat(document.getElementById("downPayment").value);
+  const mortgageRate = parseFloat(document.getElementById("mortgageRate").value);
+  const mortgageTerm = parseFloat(document.getElementById("mortgageTerm").value);
+  const insuranceRate = parseFloat(document.getElementById("insuranceRate").value);
+  const taxRate = parseFloat(document.getElementById("taxRate").value);
+  const hoaFee = parseFloat(document.getElementById("hoaFee").value);
+  const managementFee = parseFloat(document.getElementById("managementFee").value);
+  const projectionYears = parseFloat(document.getElementById("projectionYears").value);
+
+  const loanAmount = propertyValue - downPayment;
+
+  const monthlyMortgage = calculateMortgagePayment(
+    loanAmount,
+    mortgageRate,
+    mortgageTerm
+  );
+
+  const annualMortgage = monthlyMortgage * 12;
+
+  const annualRent = rent * 12;
+
+  const annualInsurance = propertyValue * (insuranceRate / 100);
+
+  const annualPropertyTax = propertyValue * (taxRate / 100);
+
+  const annualManagementFee = annualRent * (managementFee / 100);
+
+  const annualHOA = hoaFee * 12;
+
+  const annualExpenses =
+    annualMortgage +
+    annualInsurance +
+    annualPropertyTax +
+    annualManagementFee +
+    annualHOA;
+
+  const annualCashFlow = annualRent - annualExpenses;
+
+  let balance = loanAmount;
+  const monthlyRate = mortgageRate / 100 / 12;
+
+  let rows = "";
+
+  let totalPrincipalPaid = 0;
+
+  for (let year = 1; year <= projectionYears; year++) {
+
+    let yearlyPrincipal = 0;
+    let yearlyInterest = 0;
+
+    for (let month = 1; month <= 12; month++) {
+
+      const interestPayment = balance * monthlyRate;
+
+      const principalPayment = monthlyMortgage - interestPayment;
+
+      balance -= principalPayment;
+
+      yearlyPrincipal += principalPayment;
+      yearlyInterest += interestPayment;
+    }
+
+    totalPrincipalPaid += yearlyPrincipal;
+
+    const currentEquity = downPayment + totalPrincipalPaid;
+
+    const cashFlowROI =
+      (annualCashFlow / downPayment) * 100;
+
+    const equityROI =
+      (yearlyPrincipal / downPayment) * 100;
+
+    const totalROI =
+      ((annualCashFlow + yearlyPrincipal) / downPayment) * 100;
+
+    rows += `
+      <tr>
+        <td>${year}</td>
+        <td>${currency(yearlyPrincipal)}</td>
+        <td>${currency(yearlyInterest)}</td>
+        <td>${currency(currentEquity)}</td>
+        <td>${currency(annualCashFlow)}</td>
+        <td>${percent(cashFlowROI)}</td>
+        <td>${percent(equityROI)}</td>
+        <td>${percent(totalROI)}</td>
+      </tr>
+    `;
+  }
+
+  document.getElementById("results").innerHTML = `
+
+    <div class="cards">
+
+      <div class="card">
+        <h3>Monthly Mortgage</h3>
+        <p>${currency(monthlyMortgage)}</p>
+      </div>
+
+      <div class="card">
+        <h3>Annual Cash Flow</h3>
+        <p>${currency(annualCashFlow)}</p>
+      </div>
+
+      <div class="card">
+        <h3>Total Annual Expenses</h3>
+        <p>${currency(annualExpenses)}</p>
+      </div>
+
+      <div class="card">
+        <h3>Loan Amount</h3>
+        <p>${currency(loanAmount)}</p>
+      </div>
+
+    </div>
+
+    <h2>Year-by-Year Equity & Return Analysis</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Year</th>
+          <th>Principal Paid</th>
+          <th>Interest Paid</th>
+          <th>Total Equity</th>
+          <th>Cash Flow</th>
+          <th>Cash Flow ROI</th>
+          <th>Equity ROI</th>
+          <th>Total ROI</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows}
+      </tbody>
+    </table>
+
+    <div class="note">
+      <strong>Definitions:</strong><br><br>
+
+      <strong>Cash Flow ROI</strong> =
+      Annual Cash Flow ÷ Down Payment<br><br>
+
+      <strong>Equity ROI</strong> =
+      Principal Repaid During Year ÷ Down Payment<br><br>
+
+      <strong>Total ROI</strong> =
+      (Cash Flow + Principal Repaid) ÷ Down Payment<br><br>
+
+      Mortgage payments include both principal and interest. Interest is treated as an expense,
+      while principal repayment increases your ownership equity in the property.
+    </div>
+
+  `;
+}
+
+calculateInvestment();
+
 </script>
 
 </body>
